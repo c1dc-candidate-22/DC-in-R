@@ -9,18 +9,22 @@ library(ggplot2)
 library(grDevices)
 library(codetools)
 library(datasets)
-#set working directory to foldedr where Data is present
+#set working directory to folder where Data is present
 setwd("D:/UTD/DC/data-challenge-data-master")
 df1<-read.csv("2012_to_2014_loans_data.csv")
 df2<-read.csv("2012_to_2014_institutions_data.csv")
-a<-join(df1,df2,type="inner") # 2 data tables
 
+a<-join(df1,df2,type="left") # 2 data tables left joined
+
+#check for duplicate records
+df1[duplicated(df1),]
+df2[duplicated(df2),]
 hmda_to_json(a,states,Conventional_Conforming_Flag) 
 { 
   hmda<-subset(a,Conventional_Conforming_Flag)
   write.table(hmda,"hmda_json.txt")
 }
-Dat<-subset(a,Conventional_Conforming_Flag="y")
+#Dat<-subset(a,Conventional_Conforming_Flag="Y")
 
 #is.na(a$Loan_Amount_000)
 LnAmt_MissingCount<-sum(is.nan(a$Loan_Amount_000))
@@ -35,11 +39,18 @@ if(x==2) print("No error in Flag") else print ("Data error in Flag")
 
 #Observe the increase/decrease in loan applications count through the years
 Number_of_Ln_applications<-table(a$As_of_Year)
-barplot(Number_of_Ln_applications,main="Number of Loan applications each year",xlab="Number of applications")
+barplot(Number_of_Ln_applications,main="Number of Loan applications each year",xlab="Year")
 
 #Observe the agencies with maximum market share
 Number_of_Ln_applPerAgency<-table(a$Agency_Code_Description)
 barplot(Number_of_Ln_applPerAgency,main="Number of Loan applications responded by agencies",xlab="Agencies")
+Number_of_Agency<-table(a$Agency_Code_Description)
+#slices <- Number_of_Ln_applPerAgency
+#lbl <- a$Agency_Code_Description
+#pct <- round(slices/sum(slices)*100)
+#lbl <- paste(lbl, pct) # add percents to labels 
+#lbl <- paste(lbl,"%",sep="") # ad % to labels 
+#pie(slices, labels = lbl,col=rainbow(length(lbl)), main="Pie Chart of Agencies")
 
 #Observe the market share state wise
 Number_of_Ln_applPerState<-table(a$State)
@@ -53,16 +64,33 @@ barplot(FlagDat,main="Conforming & Conventional loans in each year", xlab="Year"
 Number_of_LnPurposePerYear<-table(a$Loan_Purpose_Description)
 barplot(Number_of_LnPurposePerYear,main="Number of Loan applications purpose wise",xlab="Loan Purpose")
 
+Dat<-a[a[,'Conventional_Conforming_Flag'] =='Y',]
+
 #Since from the above graph we see the maximum of the loan applications in 3 years are received for the purpose of Refinancing, we analyse it deeper.
 #Observe the Refinance type of loans through the 3 years.
-RefinData<-subset(Dat,Loan_Purpose_Description="Refinance")
-RefinDat<-table(RefinData$As_of_Year)
+#RefineData[Dat[,"Loan_Purpose_Description"]="Refinance"]
+RefinData<-a[a[,'Loan_Purpose_Description'] =='Refinance',]
+RefinDat<-table(RefineData$As_of_Year)
 barplot(RefinDat,main="Loans for refinance in each year", xlab="Year")
+
+#Observe the Purchasae type of loans through the 3 years.
+#PurchaseData<-subset(Dat,Loan_Purpose_Description="Purchase")
+PurchaseData<-a[a[,'Loan_Purpose_Description'] =='Purchase',]
+PurDat<-table(PurchaseData$As_of_Year)
+barplot(PurDat,main="Loans for purchase in each year", xlab="Year")
 
 #Since from the above graph we see the maximum of the loan applications in 3 years are received for the purpose of Refinancing, we analyse it deeper.
 #Observe the Refinance type of loans for each state.
 RefinDatState<-table(RefinData$State)
 barplot(RefinDatState,main="Loans for refinance in each State", xlab="State")
+
+
+#Observe the Refinance type of loans for WV state.
+LnAppl2014<-a[a[,'As_of_Year'] =='2014',]
+#barplot(WVRefinDat,main="Loans for WV State", xlab="State")
+
+Number_of_Ln_applWVState<-table(Dat2014$State)
+barplot(Number_of_Ln_applWVState,main="Number of Loan applications in year 2014",xlab="States")
 
 #Looking at the graphs, introducing home loans would not be advisable because of 2 competitors already in market CFPB & HUD especially in VA & MD states
 
@@ -101,12 +129,12 @@ barplot(RefinDatState,main="Loans for refinance in each State", xlab="State")
 #AsYear<-c(2012,2013,2014)
 #L_to_I_Ratios<-c(L_to_I_2012ratio,L_to_I_2013ratio,L_to_I_2014ratio)
 
-qplot(x=AsYear,y=L_to_I_Ratios,data=a,geom='point')
+#qplot(x=AsYear,y=L_to_I_Ratios,data=a,geom='point')
 #qplot(aes(x=a$As_of_Year,y=L_to_I_Ratios),data=a,geom='point')
 #geom_point(data=a,aes(x=a$As_of_Year,y=L_to_I_Ratios),fill="green",alpha=0.8,size=5,shape=21)
 #p<-ggplot(a,aes(AsYear,L_to_I_Ratios))
 #p+ geom_point()
-attach(a)
-plot(AsYear,L_to_I_Ratios,type="p")
+#attach(a)
+#plot(AsYear,L_to_I_Ratios,type="p")
 #abline(lm(AsYear~L_to_I_Ratios))
-title('Loan amount to Income ratio')
+#title('Loan amount to Income ratio')
